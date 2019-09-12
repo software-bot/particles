@@ -1,8 +1,8 @@
 import math
 import pygame
-from vector2d import Vector2D
+from particles.vector2d import Vector2D
 
-particles_collide = False
+particles_collide = True
 boundary_collide = True
 use_gravity = False
 gravity = 9.81

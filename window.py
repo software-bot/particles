@@ -1,10 +1,10 @@
 import math
 import random
 import pygame
-from boundary import Boundary
-from bag import Bag
-from point import Point
-from vector2d import Vector2D
+from particles.boundary import Boundary
+from particles.bag import Bag
+from particles.point import Point
+from particles.vector2d import Vector2D
 
 
 def is_running(particle):
@@ -16,31 +16,43 @@ def is_running(particle):
     return True
 
 
+def random_boundaries():
+    for i in range(10):
+        x = random.randrange(100, pygame.display.get_surface().get_size()[0] - 100, 1)
+        y = random.randrange(100, pygame.display.get_surface().get_size()[1] - 100, 1)
+        angle = random.randrange(0, 360, 1)
+        length = random.randrange(100, 500, 20)
+        boundaries.append(
+            Boundary(Point(x, y),
+                     Point(x + math.cos(math.radians(angle)) * length, y + math.sin(math.radians(angle)) * length),
+                     angle))
+
+
+def tube():
+    boundaries.append(
+        Boundary(Point(410, 100), Point(410 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
+                 90))
+
+    boundaries.append(
+        Boundary(Point(550, 100), Point(550 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
+                 90))
+
+    boundaries.append(
+        Boundary(Point(410 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
+                 Point(630 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
+                 0))
+
+
+use_random_boundaries = True
 screen = pygame.display.set_mode((1000, 1000))
 running = True
 clock = pygame.time.Clock()
 boundaries = []
-for i in range(10):
-    x = random.randrange(100, pygame.display.get_surface().get_size()[0] - 100, 1)
-    y = random.randrange(100, pygame.display.get_surface().get_size()[1] - 100, 1)
-    angle = random.randrange(0, 360, 1)
-    length = random.randrange(100, 500, 20)
-    boundaries.append(
-        Boundary(Point(x, y), Point(x + math.cos(math.radians(angle)) * length, y + math.sin(math.radians(angle)) * length),
-                 angle))
+if use_random_boundaries:
+    random_boundaries()
+else:
+    tube()
 
-# boundaries.append(
-#     Boundary(Point(410, 100), Point(410 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
-#              90))
-#
-boundaries.append(
-    Boundary(Point(550, 100), Point(550 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
-             90))
-
-boundaries.append(
-    Boundary(Point(410 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
-             Point(630 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
-             0))
 v = Vector2D()
 v.x = 100
 v.y = 100

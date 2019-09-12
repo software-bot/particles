@@ -1,7 +1,7 @@
 import math
 import pygame
-from particle import Particle
-from vector2d import Vector2D
+from particles.particle import Particle
+from particles.vector2d import Vector2D
 
 particle_radius = 2
 start_velocity_multiplication = 3
