@@ -2,7 +2,7 @@ import math
 import pygame
 from particles.vector2d import Vector2D
 
-particles_collide = True
+particle_collide = True
 boundary_collide = True
 use_gravity = False
 gravity = 9.81
@@ -18,18 +18,17 @@ velocity_loss_on_90_degree_collision = 0.8
 
 
 def sub(v1, v2):
-    s = Vector2D(v1.x - v2.x, v1.y - v2.y)
-    return s
+    return Vector2D(v1.x - v2.x, v1.y - v2.y)
 
 
 def dot(v1, v2):
-    vs = v1.x * v2.x
-    vx = v1.y * v2.y
-    return vs + vx
+    vx = v1.x * v2.x
+    vy = v1.y * v2.y
+    return vx + vy
 
 
-def magnitude(v1):
-    return (v1.x ** 2 + v1.y ** 2) ** 0.5
+def magnitude(v):
+    return (v.x ** 2 + v.y ** 2) ** 0.5
 
 
 def multiply(v, c):
@@ -41,10 +40,7 @@ def distance(p1, p2):
 
 
 def add(v1, v2):
-    v = Vector2D()
-    v.x = v1.x + v2.x
-    v.y = v1.y + v2.y
-    return v
+    return Vector2D(v1.x + v2.x, v1.y + v2.y)
 
 
 def normalise(v):
@@ -60,10 +56,18 @@ def project(v1, v2):
     return Vector2D(v2.x * scale, v2.y * scale)
 
 
-def intersect(c1, c2):
-    dist = distance(c1.center, c2.center)
-    r_sum = c1.radius + c2.radius
-    return dist <= r_sum
+"""
+Returns velocity of particle p1 after colliding with particle p2
+"""
+
+
+def velocity_after_collision(p1, p2):
+    t1 = sub(p1.velocity, p2.velocity)
+    t2 = sub(p1.center, p2.center)
+    top = dot(t1, t2)
+    bot = magnitude(sub(p1.center, p2.center)) ** 2
+    u = top / bot
+    return sub(p1.velocity, multiply(t2, u))
 
 
 class Particle:
@@ -77,7 +81,7 @@ class Particle:
 
     def draw(self, screen, boundaries, particles, fps):
         self.update_color()
-        self.detect_col(boundaries, particles)
+        self.detect_collisions(boundaries, particles)
         self.move(fps)
         pygame.draw.circle(screen, self.color, (int(self.center.x), int(self.center.y)), self.radius, self.radius)
 
@@ -86,60 +90,52 @@ class Particle:
         red = 255 if red > 255 else red
         self.color = (red, 130, 130)
 
+    def detect_collisions(self, boundaries, particles):
+        if particle_collide:
+            self.particles_collision(particles)
+        if boundary_collide:
+            self.boundary_collisions(boundaries)
+
     def move(self, fps):
         self.center = add(self.center, self.velocity)
         self.loose_some_velocity(loss_x=0.9999, loss_y=0.9999)
         self.gravity(fps)
 
-    def start_calculating_collision(self, particles):
+    def particles_collision(self, particles):
         for p in particles:
-            if p != self and intersect(self, p):
+            if p != self and self.particle_intersect(p):
                 self.collision_with(p)
 
-    def collision_with(self, ball):
-        my_velocity = self.self_velocity_after_collision(ball)
-        your_velocity = self.collided_ball_velocity_after_collision(ball)
-        self.velocity = my_velocity
-        ball.velocity = your_velocity
+    def collision_with(self, particle):
+        self_velocity = velocity_after_collision(self, particle)
+        particle_velocity = velocity_after_collision(particle, self)
+        self.velocity = self_velocity
+        particle.velocity = particle_velocity
 
-    def self_velocity_after_collision(self, ball):
-        t1 = sub(self.velocity, ball.velocity)
-        t2 = sub(self.center, ball.center)
-        top = dot(t1, t2)
-        bot = magnitude(sub(self.center, ball.center)) ** 2
-        u = top / bot
-        return sub(self.velocity, multiply(t2, u))
+    def boundary_collisions(self, boundaries):
+        for bound in boundaries:
+            if self.boundary_intersect(bound):
+                v = Vector2D(math.cos(math.radians(90 + bound.angle)), math.sin(math.radians(90 + bound.angle)))
+                to_sub = multiply(normalise(v), 2 * dot(self.velocity, v))
 
-    def collided_ball_velocity_after_collision(self, ball):
-        t1 = sub(ball.velocity, self.velocity)
-        t2 = sub(ball.center, self.center)
-        top = dot(t2, t1)
-        bot = magnitude(sub(ball.center, self.center)) ** 2
-        u = top / bot
-        return sub(ball.velocity, multiply(t2, u))
+                if loose_velocity_based_on_angle:
+                    cos_angle = abs(dot(self.velocity, v) / (magnitude(v) * magnitude(self.velocity)))
+                    cos_angle *= velocity_loss_on_90_degree_collision
+                    cos_angle = 1 - cos_angle
+                    self.velocity = sub(self.velocity, to_sub)
+                    self.loose_some_velocity(loss_x=cos_angle, loss_y=cos_angle)
+                else:
+                    self.velocity = sub(self.velocity, to_sub)
+                    self.loose_some_velocity()
 
-    def detect_col(self, boundaries, particles):
-        if particles_collide:
-            self.start_calculating_collision(particles)
-        if boundary_collide:
-            for bound in boundaries:
-                if self.is_intersecting(bound):
-                    v = Vector2D(math.cos(math.radians(90 + bound.angle)), math.sin(math.radians(90 + bound.angle)))
-                    to_sub = multiply(normalise(v), 2 * dot(self.velocity, v))
-
-                    if loose_velocity_based_on_angle:
-                        cos_angle = abs(dot(self.velocity, v) / (magnitude(v) * magnitude(self.velocity)))
-                        cos_angle *= velocity_loss_on_90_degree_collision
-                        cos_angle = 1 - cos_angle
-                        self.velocity = sub(self.velocity, to_sub)
-                        self.loose_some_velocity(loss_x=cos_angle, loss_y=cos_angle)
-                    else:
-                        self.velocity = sub(self.velocity, to_sub)
-                        self.loose_some_velocity()
+    def particle_intersect(self, c2):
+        dist = distance(self.center, c2.center)
+        r_sum = self.radius + c2.radius
+        return dist <= r_sum
 
     # Workaround for checking if circle intersects with a line.
     # This is done by line intersection because vector projection which was not precise... or poorly used :)
-    def is_intersecting(self, bound):
+    def boundary_intersect(self, bound):
         x1 = self.center.x
         y1 = self.center.y
 
@@ -158,11 +154,11 @@ class Particle:
         x4 = bound.end.x
         y4 = bound.end.y
 
-        diff = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-        if diff == 0:
+        divider = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        if divider == 0:
             return False
-        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / diff
-        u = ((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / diff
+        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / divider
+        u = ((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / divider
 
         return 1 >= t >= 0 >= u >= -1
 

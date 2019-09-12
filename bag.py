@@ -32,7 +32,7 @@ class Bag:
                              self.pos.y + math.sin(math.radians(i)) * spawn_circle_radius),
                     v, particle_radius)
 
-    def throw_balls(self, screen, boundaries, fps):
+    def throw_particles(self, screen, boundaries, fps):
         for p in self.particles:
             if pygame.display.get_surface().get_size()[0] > p.center.x > 0 and \
                     pygame.display.get_surface().get_size()[1] > p.center.y > 0:
@@ -44,9 +44,9 @@ class Bag:
         self.pos.x = dx
         self.pos.y = dy
 
-    def reset(self):
+    def add_more_particles(self):
         self.particles += self.init_particles()
 
-    def update_and_throw_balls(self, screen, dx, dy, boundaries, fps):
+    def update_and_throw_particles(self, screen, dx, dy, boundaries, fps):
         self.update(dx, dy)
-        self.throw_balls(screen, boundaries, fps)
+        self.throw_particles(screen, boundaries, fps)

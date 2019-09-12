@@ -11,7 +11,7 @@ def is_running(particle):
         if event.type == pygame.QUIT:
             return False
         if event.type == pygame.MOUSEBUTTONUP:
-            particle.reset()
+            particle.add_more_particles()
     return True
 
 
@@ -62,8 +62,8 @@ while running:
     clock.tick(60)
     screen.fill((0, 0, 0))
     running = is_running(bag)
-    bag.update_and_throw_balls(screen, pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1], boundaries,
-                               clock.get_fps())
+    bag.update_and_throw_particles(screen, pygame.mouse.get_pos()[0], pygame.mouse.get_pos()[1], boundaries,
+                                   clock.get_fps())
     for b in boundaries:
         b.draw(screen)
     pygame.display.flip()
