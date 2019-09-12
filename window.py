@@ -3,7 +3,6 @@ import random
 import pygame
 from particles.boundary import Boundary
 from particles.bag import Bag
-from particles.point import Point
 from particles.vector2d import Vector2D
 
 
@@ -23,23 +22,25 @@ def random_boundaries():
         angle = random.randrange(0, 360, 1)
         length = random.randrange(100, 500, 20)
         boundaries.append(
-            Boundary(Point(x, y),
-                     Point(x + math.cos(math.radians(angle)) * length, y + math.sin(math.radians(angle)) * length),
+            Boundary(Vector2D(x, y),
+                     Vector2D(x + math.cos(math.radians(angle)) * length, y + math.sin(math.radians(angle)) * length),
                      angle))
 
 
 def tube():
     boundaries.append(
-        Boundary(Point(410, 100), Point(410 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
+        Boundary(Vector2D(410, 100),
+                 Vector2D(410 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
                  90))
 
     boundaries.append(
-        Boundary(Point(550, 100), Point(550 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
+        Boundary(Vector2D(550, 100),
+                 Vector2D(550 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
                  90))
 
     boundaries.append(
-        Boundary(Point(410 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
-                 Point(630 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
+        Boundary(Vector2D(410 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
+                 Vector2D(630 + math.cos(math.radians(90)) * 600, 100 + math.sin(math.radians(90)) * 600),
                  0))
 
 

@@ -6,15 +6,15 @@ particles_collide = True
 boundary_collide = True
 use_gravity = False
 gravity = 9.81
-loose_momentum_based_on_angle = True
+loose_velocity_based_on_angle = True
 """
 Specifies how much of velocity is lost when hitting a wall at 90' angle. 
 Velocity loss will be equally spread from 1 - 90 degree angle hit - loosing least velocity at 1' hit and max at 90' hit
 value(1) - all velocity will be lost on perpendicular hit, value(0.1) - almost no velocity lost on perpendicular
 
-Note: for this to work *loose_momentum_based_on_angle* must be set to True!
+Note: for this to work *loose_velocity_based_on_angle* must be set to True!
 """
-momentum_loss_on_90_degree_collision = 0.8
+velocity_loss_on_90_degree_collision = 0.8
 
 
 def sub(v1, v2):
@@ -88,7 +88,7 @@ class Particle:
 
     def move(self, fps):
         self.center = add(self.center, self.velocity)
-        self.loose_some_momentum(loss_x=0.9999, loss_y=0.9999)
+        self.loose_some_velocity(loss_x=0.9999, loss_y=0.9999)
         self.gravity(fps)
 
     def start_calculating_collision(self, particles):
@@ -127,18 +127,18 @@ class Particle:
                     v = Vector2D(math.cos(math.radians(90 + bound.angle)), math.sin(math.radians(90 + bound.angle)))
                     to_sub = multiply(normalise(v), 2 * dot(self.velocity, v))
 
-                    if loose_momentum_based_on_angle:
+                    if loose_velocity_based_on_angle:
                         cos_angle = abs(dot(self.velocity, v) / (magnitude(v) * magnitude(self.velocity)))
-                        cos_angle *= momentum_loss_on_90_degree_collision
+                        cos_angle *= velocity_loss_on_90_degree_collision
                         cos_angle = 1 - cos_angle
                         self.velocity = sub(self.velocity, to_sub)
-                        self.loose_some_momentum(loss_x=cos_angle, loss_y=cos_angle)
+                        self.loose_some_velocity(loss_x=cos_angle, loss_y=cos_angle)
                     else:
                         self.velocity = sub(self.velocity, to_sub)
-                        self.loose_some_momentum()
+                        self.loose_some_velocity()
 
     # Workaround for checking if circle intersects with a line.
-    # This is done by line intersection because vector projection which was not precise... or not used correctly :)
+    # This is done by line intersection because vector projection which was not precise... or poorly used :)
     def is_intersecting(self, bound):
         x1 = self.center.x
         y1 = self.center.y
@@ -166,7 +166,7 @@ class Particle:
 
         return 1 >= t >= 0 >= u >= -1
 
-    def loose_some_momentum(self, loss_x=0.7, loss_y=0.7):
+    def loose_some_velocity(self, loss_x=0.7, loss_y=0.7):
         self.velocity.x *= loss_x
         self.velocity.y *= loss_y
 
